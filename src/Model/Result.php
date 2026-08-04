@@ -35,7 +35,7 @@ class WpTesting_Model_Result extends WpTesting_Model_AbstractTerm
         return $empty;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return parent::jsonSerialize() + array(
             'editLink' => $this->getWp()->getEditTermLink($this->getId(), 'wpt_result', 'wpt_test'),

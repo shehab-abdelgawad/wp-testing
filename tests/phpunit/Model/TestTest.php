@@ -8,14 +8,14 @@ class TestTest extends WpTesting_Tests_TestCase
      */
     private $db;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $this->db = fORMDatabase::retrieve('WpTesting_Model_Test', 'write');
         $this->db->translatedExecute('BEGIN');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->db && $this->db->translatedExecute('ROLLBACK');
     }
@@ -23,7 +23,7 @@ class TestTest extends WpTesting_Tests_TestCase
     public function testTestCanBeCreatedAndStored()
     {
         $test = $this->createTest()->store();
-        $this->greaterThan($test->getId());
+        $this->assertGreaterThan(0, $test->getId());
     }
 
     public function testAddQuestion()

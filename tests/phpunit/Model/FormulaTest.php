@@ -13,14 +13,14 @@ class FormulaTest extends WpTesting_Tests_TestCase
      */
     private $db;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->db = fORMDatabase::retrieve('WpTesting_Model_Formula', 'write');
         $this->db->execute('BEGIN');
         $this->formula = new WpTesting_Model_Formula();
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->db && $this->db->isInsideTransaction() && $this->db->execute('ROLLBACK');
     }
@@ -58,7 +58,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         );
     }
 
-    public function andsOrsNotsReplacedOnlyAsStandaloneProvider()
+    public static function andsOrsNotsReplacedOnlyAsStandaloneProvider()
     {
         return array(
             array('1 and 2', '1&&2'),
@@ -83,7 +83,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         );
     }
 
-    public function onlyAllowedSymbolsLeftProvider()
+    public static function onlyAllowedSymbolsLeftProvider()
     {
         return array(
             array('45 > 123 +1*1/1\\  ;"!@#$%^1*1() hey! 5 and 34 > 23 %', '45>123+1*1/1&&!1*1&&!5&&34>0.23'),
@@ -105,7 +105,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         );
     }
 
-    public function operatorsNormalizedProvider()
+    public static function operatorsNormalizedProvider()
     {
         return array(
             array('12 <> 12', '12!=12'),
@@ -133,7 +133,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         );
     }
 
-    public function notsBetweenValuesPrefixedsByAndsProvider()
+    public static function notsBetweenValuesPrefixedsByAndsProvider()
     {
         return array(
             array('12 NOT(12 =< 12)',   '12&&!(12<=12)'),
@@ -158,7 +158,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         );
     }
 
-    public function logicalAndsPlacedAutomaticallyProvider()
+    public static function logicalAndsPlacedAutomaticallyProvider()
     {
         return array(
             array('12 > 12 and 23 < 45', '12>12&&23<45'),
@@ -168,7 +168,8 @@ class FormulaTest extends WpTesting_Tests_TestCase
 
     public function testRequirePercentage()
     {
-        $this->setExpectedException('InvalidArgumentException', 'can not be null when source contains percentage');
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('can not be null when source contains percentage');
         $this->formula->setSource('something > 50%')->addValue('something', '23');
     }
 
@@ -196,7 +197,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         );
     }
 
-    public function formulaIsTrueOrNotProvider()
+    public static function formulaIsTrueOrNotProvider()
     {
         return array(
             array('scale 1 > 34 scale 4 < 45', true, array(
@@ -322,7 +323,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         );
     }
 
-    public function formulaIsCorrectOrNotProvider()
+    public static function formulaIsCorrectOrNotProvider()
     {
         return array(
             array('Scale A > 34 Scale B < 45',     true,  array('Scale A', 'Scale B')),
@@ -340,7 +341,8 @@ class FormulaTest extends WpTesting_Tests_TestCase
      */
     public function testFormulaWillNotAllowBothNumberAndPercentageAtOnce($source)
     {
-        $this->setExpectedException('fValidationException', 'incompatible as it contains both numbers and percentages');
+        $this->expectException('fValidationException');
+        $this->expectExceptionMessage('incompatible as it contains both numbers and percentages');
         $results = fRecordSet::build('WpTesting_Model_Result', array(), array(), 1);
 
         $this->formula
@@ -351,7 +353,7 @@ class FormulaTest extends WpTesting_Tests_TestCase
         ;
     }
 
-    public function bothNumberAndPercentageProvider()
+    public static function bothNumberAndPercentageProvider()
     {
         return array(
             array('scale1 > 50% scale2 < 2'),

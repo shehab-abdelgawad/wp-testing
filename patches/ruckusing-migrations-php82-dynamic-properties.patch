@@ -1,0 +1,55 @@
+--- a/lib/Ruckusing/Adapter/MySQL/Base.php
++++ b/lib/Ruckusing/Adapter/MySQL/Base.php
+@@ -32,6 +32,20 @@
+     private $_name = "MySQL";
+
+     /**
++     * DSN info used to open the current connection
++     *
++     * @var array
++     */
++    private $db_info;
++
++    /**
++     * Active mysqli connection
++     *
++     * @var mysqli
++     */
++    private $conn;
++
++    /**
+      * tables
+      *
+      * @var array
+--- a/lib/Ruckusing/FrameworkRunner.php
++++ b/lib/Ruckusing/FrameworkRunner.php
+@@ -37,6 +37,13 @@
+     private $_active_db_config;
+ 
+     /**
++     * Current logger instance
++     *
++     * @var Ruckusing_Util_Logger
++     */
++    private $logger;
++
++    /**
+      * Available DB config (e.g. test,development, production)
+      *
+      * @var array
+--- a/lib/Ruckusing/Task/Manager.php
++++ b/lib/Ruckusing/Task/Manager.php
+@@ -36,6 +36,13 @@
+     private $_tasks = array();
+
+     /**
++     * extra configuration passed to the manager
++     *
++     * @var array
++     */
++    private $_config;
++
++    /**
+      * Creates an instance of Ruckusing_Task_Manager
+      *
+      * @param Ruckusing_Adapter_Base $adapter The current adapter being used

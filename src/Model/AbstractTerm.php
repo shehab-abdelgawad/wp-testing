@@ -69,7 +69,7 @@ abstract class WpTesting_Model_AbstractTerm extends WpTesting_Model_AbstractMode
         return $css;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return array(
             'id'    => $this->getId(),

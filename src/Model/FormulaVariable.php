@@ -34,7 +34,7 @@ abstract class WpTesting_Model_FormulaVariable implements JsonSerializable
         return $this->valueAsRatio;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return array(
             'title' => $this->getTitle(),

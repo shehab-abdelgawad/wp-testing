@@ -17,12 +17,14 @@ return array(
     'db' => array(
         'development' => array(
             'type'     => 'mysql',
-            'host'     => 'localhost',
+            // The devcontainer's docker-compose.yml sets these; falls back
+            // to a bare local MySQL install (e.g. root/no password) otherwise
+            'host'     => getenv('DB_HOST') ?: 'localhost',
             'port'     => 3306,
-            'database' => 'wordpress',
+            'database' => getenv('DB_NAME') ?: 'wordpress',
             'directory'=> 'wp_testing',
-            'user'     => 'root',
-            'password' => '',
+            'user'     => getenv('DB_USER') ?: 'root',
+            'password' => getenv('DB_PASSWORD') ?: '',
             'charset'  => 'utf8',
             'globalPrefix' => $wp0Prefix,
             'blogPrefix'   => $wpPrefix,

@@ -146,7 +146,7 @@ class WpTesting_Model_Scale extends WpTesting_Model_AbstractTerm implements Json
         return sprintf("%u%%", $this->getValueAsRatio() * 100);
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return array(
             'id'      => $this->getId(),

@@ -43,7 +43,7 @@ class WpTesting_Model_Question extends WpTesting_Model_AbstractModel implements 
         return $this->createRelated('WpTesting_Model_Test')->setWp($this->getWp());
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return array(
             'id'        => $this->getId(),

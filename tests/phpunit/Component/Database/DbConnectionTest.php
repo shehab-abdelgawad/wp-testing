@@ -12,7 +12,9 @@ abstract class DbConnectionTest extends WpTesting_Tests_TestCase
         try {
             $result = $this->connectToDbAndQueryOne($wp);
         } catch (Exception $e) {
-            $this->assertContains($skipIfExceptionText, $e->getMessage());
+            if ($skipIfExceptionText !== null) {
+                $this->assertStringContainsStringIgnoringCase($skipIfExceptionText, $e->getMessage());
+            }
             $this->markTestSkipped($e->getMessage());
         }
 
@@ -24,7 +26,7 @@ abstract class DbConnectionTest extends WpTesting_Tests_TestCase
      */
     abstract protected function connectToDbAndQueryOne(WpTesting_WordPressFacade $wp);
 
-    public function dataForConnected()
+    public static function dataForConnected()
     {
         return array(
             array('localhost'),

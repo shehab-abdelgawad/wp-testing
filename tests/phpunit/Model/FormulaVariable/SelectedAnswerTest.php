@@ -8,14 +8,14 @@ class SelectedAnswerTest extends WpTesting_Tests_TestCase
      */
     private $db;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $this->db = fORMDatabase::retrieve('WpTesting_Model_Test', 'write');
         $this->db->translatedExecute('BEGIN');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->db && $this->db->translatedExecute('ROLLBACK');
     }
@@ -136,7 +136,7 @@ class SelectedAnswerTest extends WpTesting_Tests_TestCase
         $class = 'WpTesting_Model_Test_' . substr(md5(microtime()), 0, 6);
         fORM::mapClassToTable($class, fORM::tablize('WpTesting_Model_Test'));
         return $this->getMockBuilder('WpTesting_Model_Test')
-            ->setMethods(array_merge(array('__wakeup'), $methods))
+            ->onlyMethods(array_merge(array('__wakeup'), $methods))
             ->setMockClassName($class)
             ->getMock();
     }
@@ -197,8 +197,12 @@ class SelectedAnswerTest extends WpTesting_Tests_TestCase
     {
         $class = 'WpTesting_Model_Passing_' . substr(md5(microtime()), 0, 6);
         fORM::mapClassToTable($class, fORM::tablize('WpTesting_Model_Passing'));
+        $methodsToMock = array_merge(array('__wakeup'), $methods);
+        if (!is_null($test)) {
+            $methodsToMock[] = 'createTest';
+        }
         $mock  = $this->getMockBuilder('WpTesting_Model_Passing')
-            ->setMethods(array_merge(array('__wakeup'), $methods))
+            ->onlyMethods($methodsToMock)
             ->setMockClassName($class)
             ->getMock();
 

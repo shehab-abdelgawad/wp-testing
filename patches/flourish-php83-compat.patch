@@ -1,0 +1,584 @@
+diff -ruN a/fCookie.php b/fCookie.php
+--- a/fCookie.php	2026-08-04 08:34:34.534082996 +0000
++++ b/fCookie.php	2026-08-04 08:34:34.554338028 +0000
+@@ -91,9 +91,6 @@
+ 	{
+ 		if (isset($_COOKIE[$name])) {
+ 			$value = fUTF8::clean($_COOKIE[$name]);
+-			if (get_magic_quotes_gpc()) {
+-				$value = stripslashes($value);
+-			}
+ 			return $value;
+ 		}
+ 		return $default_value;
+diff -ruN a/fCore.php b/fCore.php
+--- a/fCore.php	2026-08-04 08:34:34.534082996 +0000
++++ b/fCore.php	2026-08-04 08:34:34.554338028 +0000
+@@ -280,7 +280,7 @@
+ 							$bt_string .= 'Object(' . get_class($arg) . ')';
+ 						} elseif (is_string($arg)) {
+ 							// Shorten the UTF-8 string if it is too long
+-							if (strlen(utf8_decode($arg)) > 18) {
++							if (mb_strlen($arg, 'UTF-8') > 18) {
+ 								// If we can't match as unicode, try single byte
+ 								if (!preg_match('#^(.{0,15})#us', $arg, $short_arg)) {
+ 									preg_match('#^(.{0,15})#s', $arg, $short_arg);
+diff -ruN a/fDatabase.php b/fDatabase.php
+--- a/fDatabase.php	2026-08-04 08:34:34.534082996 +0000
++++ b/fDatabase.php	2026-08-04 08:34:34.546236015 +0000
+@@ -156,7 +156,7 @@
+ 	 *
+ 	 * @var string
+ 	 */
+-	private $error;
++	private $error = '';
+ 
+ 	/**
+ 	 * The extension to use for the database specified
+@@ -3284,9 +3284,11 @@
+ 		try {
+ 			$output = array();
+ 			$i = 0;
+-			foreach ($queries as $i => $query) {
++			foreach ($queries as $key => $query) {
+ 				$this->run($query);
+-				$i++;
++				// $key can be a "index:subindex" string for translated/expanded
++				// statements, not always a plain integer position.
++				$i = is_int($key) ? $key + 1 : $i + 1;
+ 			}
+ 		} catch (fSQLException $e) {
+ 			$this->runRollbackStatements($rollback_statements, $i);
+diff -ruN a/fException.php b/fException.php
+--- a/fException.php	2026-08-04 08:34:34.538134002 +0000
++++ b/fException.php	2026-08-04 08:34:34.554338028 +0000
+@@ -391,7 +391,7 @@
+ 
+ 		$matching_array = func_get_args();
+ 		// This ensures that we match on the longest string first
+-		uasort($matching_array, array('self', 'sortMatchingArray'));
++		uasort($matching_array, array(__CLASS__, 'sortMatchingArray'));
+ 
+ 		$beginning     = $message_parts[1];
+ 		$list_contents = $message_parts[2];
+@@ -534,7 +534,7 @@
+ 		foreach ($matching_arrays as $matching_array) {
+ 
+ 			// This ensures that we match on the longest string first
+-			uasort($matching_array, array('self', 'sortMatchingArray'));
++			uasort($matching_array, array(__CLASS__, 'sortMatchingArray'));
+ 
+ 			// We may match more than one list item per matching string, so we need a multi-dimensional array to hold them
+ 			$matched_list_items = array_fill(0, sizeof($matching_array), array());
+diff -ruN a/fFile.php b/fFile.php
+--- a/fFile.php	2026-08-04 08:34:34.538134002 +0000
++++ b/fFile.php	2026-08-04 08:34:34.550287022 +0000
+@@ -668,7 +668,7 @@
+ 	 *
+ 	 * @return integer  The number of lines in the file
+ 	 */
+-	public function count()
++	public function count(): int
+ 	{
+ 		$this->tossIfDeleted();
+ 
+@@ -705,7 +705,7 @@
+ 	 *
+ 	 * @return array  The current row
+ 	 */
+-	public function current()
++	public function current(): mixed
+ 	{
+ 		$this->tossIfDeleted();
+ 
+@@ -1028,7 +1028,7 @@
+ 	 *
+ 	 * @return integer  The current line number
+ 	 */
+-	public function key()
++	public function key(): mixed
+ 	{
+ 		$this->tossIfDeleted();
+ 
+@@ -1080,7 +1080,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	public function next()
++	public function next(): void
+ 	{
+ 		$this->tossIfDeleted();
+ 
+@@ -1249,7 +1249,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	public function rewind()
++	public function rewind(): void
+ 	{
+ 		$this->tossIfDeleted();
+ 
+@@ -1282,7 +1282,7 @@
+ 	 *
+ 	 * @return boolean  If the iterator is still valid
+ 	 */
+-	public function valid()
++	public function valid(): bool
+ 	{
+ 		$this->tossIfDeleted();
+ 
+diff -ruN a/fGrammar.php b/fGrammar.php
+--- a/fGrammar.php	2026-08-04 08:34:34.538134002 +0000
++++ b/fGrammar.php	2026-08-04 08:34:34.550287022 +0000
+@@ -249,7 +249,7 @@
+ 				if ($upper) {
+ 					$string = ucfirst($string);
+ 				}
+-				$string = preg_replace_callback('#_([a-z0-9])#i', array('self', 'camelizeCallback'), $string);
++				$string = preg_replace_callback('#_([a-z0-9])#i', array(__CLASS__, 'camelizeCallback'), $string);
+ 			}
+ 		}
+ 
+@@ -327,7 +327,7 @@
+ 
+ 			$string = preg_replace_callback(
+ 				'/(\b(api|css|gif|html|id|jpg|js|mp3|pdf|php|png|sql|swf|url|xhtml|xml)\b|\b\w)/',
+-				array('self', 'camelizeCallback'),
++				array(__CLASS__, 'camelizeCallback'),
+ 				str_replace('_', ' ', $string)
+ 			);
+ 		}
+diff -ruN a/fJSON.php b/fJSON.php
+--- a/fJSON.php	2026-08-04 08:34:34.538134002 +0000
++++ b/fJSON.php	2026-08-04 08:34:34.550287022 +0000
+@@ -688,7 +688,7 @@
+ 		if ($type == self::J_STRING || $type == self::J_KEY) {
+ 			$element = substr($element, 1, -1);
+ 			$element = strtr($element, array_flip(self::$control_character_map));
+-			$element = preg_replace_callback('#\\\\u([0-9a-fA-F]{4})#', array('self', 'makeUnicodeCodePoint'), $element);
++			$element = preg_replace_callback('#\\\\u([0-9a-fA-F]{4})#', array(__CLASS__, 'makeUnicodeCodePoint'), $element);
+ 		}
+ 
+ 		return $element;
+diff -ruN a/fORMValidation.php b/fORMValidation.php
+--- a/fORMValidation.php	2026-08-04 08:34:34.542185009 +0000
++++ b/fORMValidation.php	2026-08-04 08:34:34.550287022 +0000
+@@ -1447,7 +1447,7 @@
+ 			$matches = $args;
+ 		}
+ 
+-		uasort($matches, array('self', 'sortMessageMatches'));
++		uasort($matches, array(__CLASS__, 'sortMessageMatches'));
+ 		self::$message_orders[$class] = $matches;
+ 	}
+ 
+diff -ruN a/fRecordSet.php b/fRecordSet.php
+--- a/fRecordSet.php	2026-08-04 08:34:34.542185009 +0000
++++ b/fRecordSet.php	2026-08-04 08:34:34.554338028 +0000
+@@ -929,7 +929,7 @@
+ 	 * @param  boolean $ignore_limit  If set to `TRUE`, this method will return the number of records that would be in the set if there was no `LIMIT` clause
+ 	 * @return integer  The number of records in the set
+ 	 */
+-	public function count($ignore_limit=FALSE)
++	public function count($ignore_limit=FALSE): int
+ 	{
+ 		if ($ignore_limit !== TRUE || $this->non_limited_count === NULL) {
+ 			return sizeof($this->records);
+@@ -1123,7 +1123,7 @@
+ 	 *
+ 	 * @return ArrayIterator  An iterator for the record set
+ 	 */
+-	public function getIterator()
++	public function getIterator(): Traversable
+ 	{
+ 		return new ArrayIterator($this->records);
+ 	}
+@@ -1414,7 +1414,7 @@
+ 	 * @param  mixed $offset  The offset to check
+ 	 * @return boolean  If the offset exists
+ 	 */
+-	public function offsetExists($offset)
++	public function offsetExists($offset): bool
+ 	{
+ 		return isset($this->records[$offset]);
+ 	}
+@@ -1432,7 +1432,7 @@
+ 	 * @param  mixed $offset  The offset of the record to get
+ 	 * @return fActiveRecord  The requested record
+ 	 */
+-	public function offsetGet($offset)
++	public function offsetGet($offset): mixed
+ 	{
+ 		if ((!is_integer($offset) && !is_numeric($offset)) || $offset < 0) {
+ 			throw new fProgrammerException(
+@@ -1461,7 +1461,7 @@
+ 	 * @param  mixed $value   The value to set to the offset
+ 	 * @return void
+ 	 */
+-	public function offsetSet($offset, $value)
++	public function offsetSet($offset, $value): void
+ 	{
+ 		throw new fProgrammerException(
+ 			'%1$s does not allow setting records via array syntax',
+@@ -1480,7 +1480,7 @@
+ 	 * @param  mixed $offset  The offset to unset
+ 	 * @return void
+ 	 */
+-	public function offsetUnset($offset)
++	public function offsetUnset($offset): void
+ 	{
+ 		throw new fProgrammerException(
+ 			'%1$s does not allow unsetting records via array syntax',
+diff -ruN a/fRequest.php b/fRequest.php
+--- a/fRequest.php	2026-08-04 08:34:34.542185009 +0000
++++ b/fRequest.php	2026-08-04 08:34:34.554338028 +0000
+@@ -118,7 +118,7 @@
+ 	{
+ 		$level++;
+ 
+-		$strict_array = substr($cast_to, -2) == '[]';
++		$strict_array = $cast_to !== NULL && substr($cast_to, -2) == '[]';
+ 		$array_type   = $cast_to == 'array' || $strict_array;
+ 
+ 		if ($level == 1 && $array_type) {
+@@ -150,9 +150,9 @@
+ 			$cast_to = 'string';
+ 		}
+ 
+-		if (get_magic_quotes_gpc() && (self::isPost() || self::isGet())) {
+-			$value = self::stripSlashes($value);
+-		}
++		// Magic quotes were removed from PHP core in 5.4 (get_magic_quotes_gpc()
++		// always returned false since then, and was itself removed in PHP 8.0),
++		// so stripping slashes here is never needed anymore.
+ 
+ 		// This normalizes an empty element to NULL
+ 		if ($cast_to === NULL && $value === '') {
+diff -ruN a/fResult.php b/fResult.php
+--- a/fResult.php	2026-08-04 08:34:34.542185009 +0000
++++ b/fResult.php	2026-08-04 08:34:34.554338028 +0000
+@@ -382,7 +382,7 @@
+ 	 *
+ 	 * @return array|stdClass  The current row
+ 	 */
+-	public function current()
++	public function current(): mixed
+ 	{
+ 		if(!$this->returned_rows) {
+ 			throw new fNoRowsException('The query did not return any rows');
+@@ -607,7 +607,7 @@
+ 	 *
+ 	 * @return integer  The current row number
+ 	 */
+-	public function key()
++	public function key(): mixed
+ 	{
+ 		if ($this->pointer === NULL) {
+ 			$this->current();
+@@ -626,7 +626,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	public function next()
++	public function next(): void
+ 	{
+ 		if ($this->pointer === NULL) {
+ 			$this->current();
+@@ -649,7 +649,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	public function rewind()
++	public function rewind(): void
+ 	{
+ 		try {
+ 			$this->seek(0);
+@@ -860,7 +860,7 @@
+ 	 *
+ 	 * @return boolean  If the iterator is still valid
+ 	 */
+-	public function valid()
++	public function valid(): bool
+ 	{
+ 		if (!$this->returned_rows) {
+ 			return FALSE;
+diff -ruN a/fSchema.php b/fSchema.php
+--- a/fSchema.php	2026-08-04 08:34:34.542185009 +0000
++++ b/fSchema.php	2026-08-04 08:34:34.554338028 +0000
+@@ -184,12 +184,14 @@
+ 	 */
+ 	private function checkForSingleColumnUniqueKey($table, $column)
+ 	{
+-		foreach ($this->merged_keys[$table]['unique'] as $key) {
++		$unique_keys = isset($this->merged_keys[$table]['unique']) ? $this->merged_keys[$table]['unique'] : array();
++		foreach ($unique_keys as $key) {
+ 			if (array($column) == $key) {
+ 				return TRUE;
+ 			}
+ 		}
+-		if (array($column) == $this->merged_keys[$table]['primary']) {
++		$primary_key = isset($this->merged_keys[$table]['primary']) ? $this->merged_keys[$table]['primary'] : array();
++		if (array($column) == $primary_key) {
+ 			return TRUE;
+ 		}
+ 		return FALSE;
+@@ -1153,8 +1155,10 @@
+ 				$info['valid_values'] = preg_replace("/^'|'\$/D", '', explode(",", $match[3]));
+ 				$match[3] = 0;
+ 				foreach ($info['valid_values'] as $valid_value) {
+-					if (strlen(utf8_decode($valid_value)) > $match[3]) {
+-						$match[3] = strlen(utf8_decode($valid_value));
++					// utf8_decode()+strlen() was a lossy way to count characters
++					// instead of bytes; mb_strlen() does that directly
++					if (mb_strlen($valid_value, 'UTF-8') > $match[3]) {
++						$match[3] = mb_strlen($valid_value, 'UTF-8');
+ 					}
+ 				}
+ 			}
+@@ -1187,7 +1191,9 @@
+ 			$info['not_null'] = (!empty($match[5])) ? TRUE : FALSE;
+ 
+ 			// Default values
+-			if (!empty($match[6]) && $match[6] != 'NULL') {
++			// Using empty() here would incorrectly skip a literal DEFAULT 0
++			// (or DEFAULT '', DEFAULT '0') since PHP considers "0" empty
++			if (isset($match[6]) && $match[6] != '' && $match[6] != 'NULL') {
+ 				$info['default'] = preg_replace("/^'|'\$/D", '', $match[6]);
+ 			}
+ 
+@@ -2206,7 +2212,7 @@
+ 			return;
+ 		}
+ 
+-		list ($key1, $key2) = $this->merged_keys[$table]['foreign'];
++		list ($key1, $key2) = isset($this->merged_keys[$table]['foreign']) ? $this->merged_keys[$table]['foreign'] : array(null, null);
+ 
+ 		$temp = array();
+ 		$temp['table']               = $key1['foreign_table'];
+@@ -2242,7 +2248,8 @@
+ 	 */
+ 	private function findOneToManyRelationships($table)
+ 	{
+-		foreach ($this->merged_keys[$table]['foreign'] as $key) {
++		$foreign_keys = isset($this->merged_keys[$table]['foreign']) ? $this->merged_keys[$table]['foreign'] : array();
++		foreach ($foreign_keys as $key) {
+ 			$type = ($this->checkForSingleColumnUniqueKey($table, $key['column'])) ? 'one-to-one' : 'one-to-many';
+ 			$temp = array();
+ 			$temp['table']          = $key['foreign_table'];
+@@ -2264,7 +2271,8 @@
+ 	 */
+ 	private function findStarToOneRelationships($table)
+ 	{
+-		foreach ($this->merged_keys[$table]['foreign'] as $key) {
++		$foreign_keys = isset($this->merged_keys[$table]['foreign']) ? $this->merged_keys[$table]['foreign'] : array();
++		foreach ($foreign_keys as $key) {
+ 			$temp = array();
+ 			$temp['table']          = $table;
+ 			$temp['column']         = $key['column'];
+@@ -2860,7 +2868,7 @@
+ 	 */
+ 	private function isJoiningTable($table)
+ 	{
+-		$primary_key_columns = $this->merged_keys[$table]['primary'];
++		$primary_key_columns = isset($this->merged_keys[$table]['primary']) ? $this->merged_keys[$table]['primary'] : array();
+ 
+ 		if (sizeof($primary_key_columns) != 2) {
+ 			return FALSE;
+@@ -2874,7 +2882,8 @@
+ 		}
+ 
+ 		$foreign_key_columns = array();
+-		foreach ($this->merged_keys[$table]['foreign'] as $key) {
++		$foreign_keys = isset($this->merged_keys[$table]['foreign']) ? $this->merged_keys[$table]['foreign'] : array();
++		foreach ($foreign_keys as $key) {
+ 			$foreign_key_columns[] = $key['column'];
+ 		}
+ 
+diff -ruN a/fURL.php b/fURL.php
+--- a/fURL.php	2026-08-04 08:34:34.542185009 +0000
++++ b/fURL.php	2026-08-04 08:34:34.550287022 +0000
+@@ -205,9 +205,6 @@
+ 		$parameters = func_get_args();
+ 
+ 		parse_str(self::getQueryString(), $qs_array);
+-		if (get_magic_quotes_gpc()) {
+-			$qs_array = array_map('stripslashes', $qs_array);
+-		}
+ 
+ 		foreach ($parameters as $parameter) {
+ 			unset($qs_array[$parameter]);
+@@ -230,9 +227,6 @@
+ 	static public function replaceInQueryString($parameter, $value)
+ 	{
+ 		parse_str(self::getQueryString(), $qs_array);
+-		if (get_magic_quotes_gpc()) {
+-			$qs_array = array_map('stripslashes', $qs_array);
+-		}
+ 
+ 		settype($parameter, 'array');
+ 		settype($value, 'array');
+diff -ruN a/fUTF8.php b/fUTF8.php
+--- a/fUTF8.php	2026-08-04 08:34:34.546236015 +0000
++++ b/fUTF8.php	2026-08-04 08:34:34.554338028 +0000
+@@ -999,7 +999,10 @@
+ 			return mb_strlen($string, 'UTF-8');
+ 		}
+ 
+-		return strlen(utf8_decode($string));
++		// utf8_decode() is deprecated with no core-PHP replacement; mbstring
++		// ships enabled by default on any modern PHP install, so this
++		// extension-free fallback is not expected to be reached in practice
++		return mb_strlen($string, 'UTF-8');
+ 	}
+ 
+ 
+@@ -1247,7 +1250,7 @@
+ 			return FALSE;
+ 		}
+ 
+-		return strlen(utf8_decode(substr($haystack, 0, $position)));
++		return mb_strlen(substr($haystack, 0, $position), 'UTF-8');
+ 	}
+ 
+ 
+@@ -1356,7 +1359,7 @@
+ 			return FALSE;
+ 		}
+ 
+-		return strlen(utf8_decode(substr($haystack, 0, $position)));
++		return mb_strlen(substr($haystack, 0, $position), 'UTF-8');
+ 	}
+ 
+ 
+@@ -1457,7 +1460,7 @@
+ 
+ 
+ 		// This is the slowest version
+-		$str_len = strlen(utf8_decode($string));
++		$str_len = mb_strlen($string, 'UTF-8');
+ 
+ 		if (abs($start) > $str_len) {
+ 			return FALSE;
+@@ -1527,7 +1530,7 @@
+ 	{
+ 		return preg_replace_callback(
+ 			'#(?<=^|\s|[\x{2000}-\x{200A}]|/|-|\(|\[|\{|\||"|^\'|\s\'|‘|“)(.)#u',
+-			array('self', 'ucwordsCallback'),
++			array(__CLASS__, 'ucwordsCallback'),
+ 			$string
+ 		);
+ 	}
+diff -ruN a/fUnbufferedResult.php b/fUnbufferedResult.php
+--- a/fUnbufferedResult.php	2026-08-04 08:34:34.546236015 +0000
++++ b/fUnbufferedResult.php	2026-08-04 08:34:34.550287022 +0000
+@@ -399,7 +399,7 @@
+ 	 *
+ 	 * @return array|stdClass  The current row
+ 	 */
+-	public function current()
++	public function current(): mixed
+ 	{
+ 		$this->validateState();
+ 
+@@ -588,7 +588,7 @@
+ 	 *
+ 	 * @return integer  The current row number
+ 	 */
+-	public function key()
++	public function key(): mixed
+ 	{
+ 		$this->validateState();
+ 
+@@ -609,7 +609,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	public function next()
++	public function next(): void
+ 	{
+ 		$this->validateState();
+ 
+@@ -629,7 +629,7 @@
+ 	 *
+ 	 * @return void
+ 	 */
+-	public function rewind()
++	public function rewind(): void
+ 	{
+ 		$this->validateState();
+ 
+@@ -735,7 +735,7 @@
+ 	 *
+ 	 * @return boolean  If the iterator is still valid
+ 	 */
+-	public function valid()
++	public function valid(): bool
+ 	{
+ 		$this->validateState();
+ 
+diff -ruN a/fValidation.php b/fValidation.php
+--- a/fValidation.php	2026-08-04 08:34:34.546236015 +0000
++++ b/fValidation.php	2026-08-04 08:34:34.550287022 +0000
+@@ -984,7 +984,7 @@
+ 			$args = $args[0];
+ 		}
+ 
+-		uasort($args, array('self', 'sortMessageMatches'));
++		uasort($args, array(__CLASS__, 'sortMessageMatches'));
+ 		$this->message_order = $args;
+ 
+ 		return $this;
+diff -ruN a/fValidationException.php b/fValidationException.php
+--- a/fValidationException.php	2026-08-04 08:34:34.546236015 +0000
++++ b/fValidationException.php	2026-08-04 08:34:34.554338028 +0000
+@@ -155,10 +155,7 @@
+ 			);
+ 		}
+ 
+-		call_user_func_array(
+-			array($this, 'fException::__construct'),
+-			$params
+-		);
++		fException::__construct(...$params);
+ 	}
+ 
+ 
+diff -ruN a/fXML.php b/fXML.php
+--- a/fXML.php	2026-08-04 08:34:34.546236015 +0000
++++ b/fXML.php	2026-08-04 08:34:34.550287022 +0000
+@@ -489,7 +489,7 @@
+ 	 * @param  string $offset  The offset to check
+ 	 * @return boolean  If the offset exists
+ 	 */
+-	public function offsetExists($offset)
++	public function offsetExists($offset): bool
+ 	{
+ 		return (boolean) $this->query('@' . $offset . '[1]')->length;
+ 	}
+@@ -508,7 +508,7 @@
+ 	 * @param  string $offset  The attribute to retrieve the value for
+ 	 * @return string  The value of the offset
+ 	 */
+-	public function offsetGet($offset)
++	public function offsetGet($offset): mixed
+ 	{
+ 		$attribute = $this->query('@' . $offset . '[1]');
+ 		if ($attribute->length) {
+@@ -526,7 +526,7 @@
+ 	 * @param  integer|string $offset  The offset to set
+ 	 * @return void
+ 	 */
+-	public function offsetSet($offset, $value)
++	public function offsetSet($offset, $value): void
+ 	{
+ 		throw new fProgrammerException('The %s class does not support modifying XML', __CLASS__);
+ 	}
+@@ -540,7 +540,7 @@
+ 	 * @param  integer|string $offset  The offset to unset
+ 	 * @return void
+ 	 */
+-	public function offsetUnset($offset)
++	public function offsetUnset($offset): void
+ 	{
+ 		throw new fProgrammerException('The %s class does not support modifying XML', __CLASS__);
+ 	}

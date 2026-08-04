@@ -457,6 +457,6 @@ class WpTesting_Doer_TestEditor extends WpTesting_Doer_AbstractEditor
 
     private function isTestTaxonomy()
     {
-        return preg_match('/^wpt_/', $this->getRequestValue('taxonomy'));
+        return preg_match('/^wpt_/', (string) $this->getRequestValue('taxonomy'));
     }
 }

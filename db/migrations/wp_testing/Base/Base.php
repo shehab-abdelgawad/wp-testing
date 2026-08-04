@@ -67,7 +67,8 @@ abstract class WpTesting_Migration_Base
             }
             try {
                 $result = $this->execute($singleQuery);
-            } catch (Ruckusing_Exception $e) {
+            } catch (Ruckusing_Exception | \mysqli_sql_exception $e) {
+                // mysqli throws mysqli_sql_exception (instead of returning false) by default since PHP 8.1
                 $this->adaptee->get_adapter()->logger->log(__METHOD__ . ': ' . $e->getMessage());
                 $result = false;
             }

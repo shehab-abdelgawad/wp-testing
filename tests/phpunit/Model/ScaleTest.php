@@ -8,7 +8,7 @@ class ScaleTest extends WpTesting_Tests_TestCase
      */
     private $scale = null;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->scale = new WpTesting_Model_Scale();
     }
@@ -17,12 +17,14 @@ class ScaleTest extends WpTesting_Tests_TestCase
     {
         $this->scale->setRange(1, 2);
         $this->scale->setRange(0, 1);
-        $this->setExpectedException('InvalidArgumentException', 'null');
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('null');
         $this->scale->setRange(0, null);
     }
 
     public function testScaleValuesMustBeIntegersOrDecimals()
     {
+        $this->expectNotToPerformAssertions();
         $this->scale->setRange('1', '2');
         $this->scale->setRange('1', 2);
         $this->scale->setRange('1', 2.0);
@@ -32,7 +34,8 @@ class ScaleTest extends WpTesting_Tests_TestCase
     public function testScaleRangeMinimumShouldBeLessThanMaximum()
     {
         $this->scale->setRange(1, '2');
-        $this->setExpectedException('InvalidArgumentException', 'minimum 2 must be less than maximum 1');
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('minimum 2 must be less than maximum 1');
         $this->scale->setRange('2', 1.0);
     }
 
@@ -49,12 +52,16 @@ class ScaleTest extends WpTesting_Tests_TestCase
             $this->scale->setRange($min, $max);
         }
         if (!$isSuccess) {
-            $this->setExpectedException('InvalidArgumentException', 'within range');
+            $this->expectException('InvalidArgumentException');
+            $this->expectExceptionMessage('within range');
         }
         $this->scale->setValue($value);
+        if ($isSuccess) {
+            $this->assertEquals($value, $this->scale->getValue());
+        }
     }
 
-    public function scaleValueMustBeWithinRangeProvider()
+    public static function scaleValueMustBeWithinRangeProvider()
     {
         return array(
             array(false, null, null, 5),
@@ -66,7 +73,8 @@ class ScaleTest extends WpTesting_Tests_TestCase
     public function testScaleRangeMustBeAroundValue()
     {
         $this->scale->setRange(1, 10)->setValue(5);
-        $this->setExpectedException('InvalidArgumentException', 'must include value');
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('must include value');
         $this->scale->setRange(100, 200);
     }
 
@@ -88,7 +96,8 @@ class ScaleTest extends WpTesting_Tests_TestCase
 
     public function testScaleValueCanNotBeSetWithoutMinMaxRange()
     {
-        $this->setExpectedException('InvalidArgumentException', 'within range');
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('within range');
         $this->scale->setValue(123);
     }
 

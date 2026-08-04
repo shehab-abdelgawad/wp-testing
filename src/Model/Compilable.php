@@ -159,7 +159,7 @@ abstract class WpTesting_Model_Compilable extends WpTesting_Model_AbstractModel
     /**
      * Substitutes values inside formula. Cleans up source from forbidden content.
      *
-     * @throws PHPParser_Error
+     * @throws \PhpParser\Error
      * @return string
      */
     public function substitute()
@@ -225,7 +225,7 @@ abstract class WpTesting_Model_Compilable extends WpTesting_Model_AbstractModel
         $result = preg_replace('/([\-\+\*\/])\1/', '$1 $1', $result);
 
         // Check if there is no parse error
-        $parser = new PHPParser_Parser(new PHPParser_Lexer());
+        $parser = (new \PhpParser\ParserFactory())->createForNewestSupportedVersion();
         $parser->parse('<?php ' . $result . ';');
 
         return $result;
@@ -326,7 +326,7 @@ abstract class WpTesting_Model_Compilable extends WpTesting_Model_AbstractModel
         try {
             $substitute = $experiment->substitute();
             return !empty($substitute);
-        } catch (PHPParser_Error $e) {
+        } catch (\PhpParser\Error $e) {
             return false;
         }
     }

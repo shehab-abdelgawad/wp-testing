@@ -8,7 +8,7 @@ class ShortcodesRegistratorTest extends WpTesting_Tests_TestCase
      */
     private $doer;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->doer = new WpTesting_Doer_ShortcodesRegistrator($this->getWpFacade(), $this->getFacade(), $this->getFacade());
     }
@@ -16,8 +16,8 @@ class ShortcodesRegistratorTest extends WpTesting_Tests_TestCase
     public function testTestsRendered()
     {
         $result = $this->doer->renderFactory('', null, 'wpt_tests');
-        $this->assertContains('EPI', $result);
-        $this->assertContains('decimal', $result);
+        $this->assertStringContainsString('EPI', $result);
+        $this->assertStringContainsString('decimal', $result);
     }
 
     public function testTestsAndItsBackwardAliasIdentical()
@@ -37,9 +37,9 @@ class ShortcodesRegistratorTest extends WpTesting_Tests_TestCase
     public function testBadTestsAttributeGivesAnErrorWithGuide()
     {
         $result = $this->doer->renderFactory(array('list' => 'unknown'), null, 'wpt_tests');
-        $this->assertContains('error-message', $result);
-        $this->assertContains('UnexpectedValueException', $result);
-        $this->assertContains('See <a href="http://www.w3.org/wiki/CSS/Properties/list-style-type">', $result);
+        $this->assertStringContainsString('error-message', $result);
+        $this->assertStringContainsString('UnexpectedValueException', $result);
+        $this->assertStringContainsString('See <a href="http://www.w3.org/wiki/CSS/Properties/list-style-type">', $result);
     }
 
     public function testNoAttributesToTestReadMoreGivesError()
@@ -62,15 +62,15 @@ class ShortcodesRegistratorTest extends WpTesting_Tests_TestCase
         );
         $result = $this->doer->renderFactory($attributes, null, 'wpt_test_read_more');
 
-        $this->assertContains('EPI', $result);
-        $this->assertContains('Qwerty', $result);
+        $this->assertStringContainsString('EPI', $result);
+        $this->assertStringContainsString('Qwerty', $result);
     }
 
     private function assertTestReadMoreNotFound($result)
     {
-        $this->assertNotContains('EPI',                   $result);
-        $this->assertContains('UnexpectedValueException', $result);
-        $this->assertContains('wpt_test_read_more',       $result);
-        $this->assertContains('Can not find',             $result);
+        $this->assertStringNotContainsString('EPI',                   $result);
+        $this->assertStringContainsString('UnexpectedValueException', $result);
+        $this->assertStringContainsString('wpt_test_read_more',       $result);
+        $this->assertStringContainsString('Can not find',             $result);
     }
 }

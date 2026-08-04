@@ -8,14 +8,14 @@ class ScaleValueTest extends WpTesting_Tests_TestCase
      */
     private $db;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $this->db = fORMDatabase::retrieve('WpTesting_Model_Test', 'write');
         $this->db->translatedExecute('BEGIN');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->db && $this->db->translatedExecute('ROLLBACK');
     }
@@ -46,7 +46,7 @@ class ScaleValueTest extends WpTesting_Tests_TestCase
         $scale2->setRange(1, 100)->setValue(10)->setSlug('slug2')->setTitle('title2');
 
         $testStub = $this->getMockBuilder('WpTesting_Model_Test')
-            ->setMethods(array('buildScalesWithRange', '__wakeup'))
+            ->onlyMethods(array('buildScalesWithRange', '__wakeup'))
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -71,13 +71,13 @@ class ScaleValueTest extends WpTesting_Tests_TestCase
 
         fORM::mapClassToTable('WpTesting_Model_Test_' . md5(__METHOD__), fORM::tablize('WpTesting_Model_Test'));
         $testStub = $this->getMockBuilder('WpTesting_Model_Test')
-            ->setMethods(array('buildScalesWithRange', '__wakeup'))
+            ->onlyMethods(array('buildScalesWithRange', '__wakeup'))
             ->setMockClassName('WpTesting_Model_Test_' . md5(__METHOD__))
             ->getMock();
 
         fORM::mapClassToTable('WpTesting_Model_Passing_' . md5(__METHOD__), fORM::tablize('WpTesting_Model_Passing'));
         $passingStub = $this->getMockBuilder('WpTesting_Model_Passing')
-            ->setMethods(array('createTest', 'buildAnswersScores', '__wakeup'))
+            ->onlyMethods(array('createTest', 'buildAnswersScores', '__wakeup'))
             ->setMockClassName('WpTesting_Model_Passing_' . md5(__METHOD__))
             ->getMock();
 

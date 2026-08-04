@@ -26,7 +26,7 @@ class WpTesting_Model_Formula extends WpTesting_Model_Compilable implements Json
         return new WpTesting_Model_Formula();
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return array(
             'id'     => $this->getId(),
