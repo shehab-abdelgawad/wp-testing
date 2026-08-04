@@ -1,12 +1,14 @@
 <?php
 
-abstract class WpTesting_Tests_TestCase extends PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+abstract class WpTesting_Tests_TestCase extends TestCase
 {
     private static $wpFacade;
 
     private static $facade;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$wpFacade = self::createWordPressFacade();
         self::$facade = self::createFacade(self::$wpFacade);

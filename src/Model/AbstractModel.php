@@ -2,6 +2,7 @@
 /**
  * @method array getColumnsAsMethodsOnce()
  */
+#[\AllowDynamicProperties]
 abstract class WpTesting_Model_AbstractModel extends fActiveRecord
 {
 
