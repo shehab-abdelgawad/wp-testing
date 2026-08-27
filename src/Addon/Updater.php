@@ -1,5 +1,7 @@
 <?php
 
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
 class WpTesting_Addon_Updater
 {
 
@@ -7,12 +9,12 @@ class WpTesting_Addon_Updater
 
     public function __construct($updateRoot)
     {
-        $serverName = implode('.', array_slice(explode('.', $_SERVER['SERVER_NAME']), -2));
+        $serverName = implode('.', array_slice(explode('.', isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : ''), -2));
         $this->metadataUrlFormat = rtrim($updateRoot, '/') . '/' . $serverName .  '/%s.json';
     }
 
     /**
-     * @uses PucFactory
+     * @uses \YahnisElsts\PluginUpdateChecker\v5\PucFactory
      * @return WpTesting_Addon_Updater
      */
     public function add(WpTesting_Addon_IAddon $addon)
