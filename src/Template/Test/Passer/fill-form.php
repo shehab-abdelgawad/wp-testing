@@ -37,7 +37,7 @@
     <div class="question">
 
         <div class="title">
-            <span class="number"><?php echo $q+1 ?>.</span><span class="title"><?php echo $question->getTitle() ?>
+            <span class="number"><?php echo $q+1 ?>.</span><span class="title"><?php echo htmlspecialchars($question->getTitle()) ?>
             <?php $wp->doAction('wp_testing_template_fill_form_label_end', array('required' => true)) ?></span>
         <?php if (!$isMultipleAnswers): ?>
             <input type="hidden" name="<?php echo $answerIdName ?>[<?php echo $answerIndex ?>]" value="" />
@@ -58,7 +58,7 @@
                     required="required" aria-required="true"
 <?php endif ?>
                     name="<?php echo $answerIdName ?>[<?php echo $answerIndex ?>]" value="<?php echo $answer->getId() ?>" />
-                <?php echo $answer->getTitleOnce() . "\n" ?>
+                <?php echo htmlspecialchars($answer->getTitleOnce()) . "\n" ?>
             </label>
 
         </div>

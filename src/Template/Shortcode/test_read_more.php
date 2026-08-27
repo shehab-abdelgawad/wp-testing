@@ -8,12 +8,12 @@
 ?>
 <div class="wp-testing shortcode test-read-more <?php echo $cssClasses ?>">
 
-    <h2 class="title"><?php echo $title ?></h2>
+    <h2 class="title"><?php echo htmlspecialchars($title) ?></h2>
 
     <div class="content"><?php echo $wp->applyFilters('the_content', $content) ?></div>
 
     <form action="<?php echo $url ?>" method="post">
-        <input type="submit" class="button" value="<?php echo $buttonCaption ?>"/>
+        <input type="submit" class="button" value="<?php echo htmlspecialchars($buttonCaption) ?>"/>
     </form>
 
 </div>

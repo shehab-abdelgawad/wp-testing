@@ -1,5 +1,6 @@
 /.phpunit.cache/
 /cache/
+/dist/
 /patches.lock.json
 /db/log/*.log
 /db/ruckusing.conf.local.php
